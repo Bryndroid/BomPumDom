@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#050608">
+  <title>BomPumDom — Vigilancia nocturna</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="fx-vignette" aria-hidden="true"></div>
+  <div class="fx-scanlines" aria-hidden="true"></div>
+
+  <main id="app">
+    <!-- ================= MENÚ ================= -->
+    <section id="menuScreen" class="screen menu-screen" aria-label="Menú principal">
+      <div class="menu-glow" aria-hidden="true"></div>
+      <div class="menu-grid" aria-hidden="true"></div>
+
+      <div class="menu-layout">
+        <div class="menu-copy">
+          <p class="eyebrow">KODIGO NIGHT SECURITY // TURNO 01</p>
+          <h1 class="logo"><span class="logo-bom">BOM</span><span class="logo-pum">PUM</span><span class="logo-dom">DOM</span></h1>
+          <p class="tagline">Tres noches. Dos puertas. Una sola oportunidad.</p>
+          <p class="menu-description">
+            Vigila las cámaras, escucha detrás de las puertas y sobrevive a
+            tres animatrónicos que no quieren dejarte ver el amanecer.
+          </p>
+          <div class="menu-actions">
+            <button id="startButton" class="btn btn-primary btn-large" type="button">Iniciar turno</button>
+            <button id="helpButton" class="btn btn-ghost" type="button">Cómo jugar</button>
+          </div>
+          <p class="audio-note"><span class="audio-dot"></span> Usa audífonos. El sonido es tu única alarma.</p>
+        </div>
+
+        <div class="menu-stage" aria-hidden="true">
+          <div class="stage-spotlight"></div>
+          <div id="menuBots" class="menu-bots"></div>
+          <div class="stage-floor"></div>
+          <div class="stage-plaque">BUM • PUM • DOM</div>
+        </div>
+      </div>
+
+      <footer class="menu-footer">
+        <span>PROTOTIPO JUGABLE // HTML + CSS + JS</span>
+        <span>3 NOCHES — 12:00 AM A 6:00 AM</span>
+      </footer>
+    </section>
+
+    <!-- ================= JUEGO ================= -->
+    <section id="gameScreen" class="screen game-screen is-hidden" aria-label="Juego">
+
+      <header class="hud">
+        <div class="hud-clock">
+          <span class="night-label">NOCHE <b id="nightValue">1</b></span>
+          <div class="clock-row">
+            <span id="hourLabel" class="hour-label">12 AM</span>
+            <span class="clock-sub">TURNO NOCTURNO</span>
+          </div>
+          <div class="night-track" aria-hidden="true"><i id="nightProgress"></i></div>
+        </div>
+
+        <div class="hud-power">
+          <div class="power-heading">
+            <span>ENERGÍA</span>
+            <strong id="powerValue">100%</strong>
+          </div>
+          <div class="power-track" role="progressbar" aria-label="Energía restante" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
+            <i id="powerBar"></i>
+          </div>
+          <div class="usage-row">
+            <span>CONSUMO</span>
+            <div id="usageBars" class="usage-bars" aria-label="Nivel de consumo">
+              <i></i><i></i><i></i><i></i><i></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="hud-right">
+          <div class="rec-status"><i></i> CÁM. EN LÍNEA</div>
+          <button id="camToggle" class="btn btn-cam" type="button" data-action="toggle-cameras">Cámaras <kbd>C</kbd></button>
+        </div>
+      </header>
+
+      <main id="officeStage" class="office-stage" data-view="center">
+        <!-- Vista central de la oficina -->
+        <div id="viewCenter" class="view view-center is-active" aria-hidden="false">
+          <div class="office-ceiling"></div>
+          <div class="office-wall-glow"></div>
+
+          <div class="office-trio-frame" aria-hidden="true">
+            <div id="officeTrio" class="office-trio"></div>
+          </div>
+
+          <div class="door-danger door-danger--left" aria-hidden="true">
+            <span class="danger-mark">!</span>
+            <b>DANGER</b>
+          </div>
+          <div class="door-danger door-danger--right" aria-hidden="true">
+            <span class="danger-mark">!</span>
+            <b>DANGER</b>
+          </div>
+
+          <button class="office-door office-door-left" type="button" data-action="look-left" aria-label="Mirar la puerta izquierda">
+            <span class="office-door-hole"></span>
+          </button>
+          <button class="office-door office-door-right" type="button" data-action="look-right" aria-label="Mirar la puerta derecha">
+            <span class="office-door-hole"></span>
+          </button>
+
+          <div class="office-desk">
+            <div class="desk-monitor">
+              <span class="monitor-scan"></span>
+              <b>REC</b>
+              <small id="deskClock">12:00 AM</small>
+            </div>
+            <div class="desk-fan" aria-hidden="true">
+              <span class="fan-blade"></span>
+              <span class="fan-cage"></span>
+              <span class="fan-stand"></span>
+            </div>
+            <div class="desk-cup"></div>
+          </div>
+        </div>
+
+        <!-- Vista de puerta -->
+        <div id="viewDoor" class="view view-door" aria-hidden="true">
+          <div id="doorScene" class="door-scene" data-side="left">
+            <div class="door-corridor">
+              <div class="corridor-wall"></div>
+              <div class="corridor-ceiling"></div>
+              <div id="doorPosterLeft" class="door-poster door-poster--left" aria-hidden="true"></div>
+              <div id="doorPosterRight" class="door-poster door-poster--right" aria-hidden="true"></div>
+              <div class="doorway-frame">
+                <div class="doorway-light"></div>
+                <div class="doorway-dark"></div>
+                <div id="doorShutter" class="door-shutter" aria-hidden="true">
+                  <span></span><span></span><span></span>
+                  <b>MANTENIMIENTO</b>
+                </div>
+                <div class="doorway-red-light"></div>
+              </div>
+              <div class="corridor-floor"></div>
+            </div>
+
+            <div class="door-side-info">
+              <div class="door-heading">
+                <span class="eyebrow">SECTOR <b id="doorSideCode">L</b></span>
+                <h2 id="doorSideLabel">PUERTA IZQUIERDA</h2>
+                <p>Acerca el oído. Si el sonido no es familiar, cierra.</p>
+              </div>
+
+              <div class="door-status" id="doorStatus">
+                <span class="status-dot"></span>
+                <b id="doorStatusText">PUERTA ABIERTA</b>
+              </div>
+
+              <div class="door-buttons">
+                <button id="lightButton" class="machine-btn machine-btn-light" type="button" data-action="light">
+                  <span class="machine-icon">☼</span>
+                  <span>
+                    <b id="lightButtonLabel">Encender luz</b>
+                    <small>L</small>
+                  </span>
+                </button>
+                <button id="doorButton" class="machine-btn machine-btn-door" type="button" data-action="door">
+                  <span class="machine-icon">▣</span>
+                  <span>
+                    <b id="doorButtonLabel">Cerrar puerta</b>
+                    <small>ESPACIO</small>
+                  </span>
+                </button>
+              </div>
+
+              <div class="listen-block">
+                <div class="listen-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+                <p>ESCUCHA CON ATENCIÓN</p>
+              </div>
+            </div>
+
+            <div class="door-arrows">
+              <button class="look-arrow" type="button" data-action="look-left" aria-label="Mirar puerta izquierda">←</button>
+              <button class="look-arrow" type="button" data-action="look-right" aria-label="Mirar puerta derecha">→</button>
+              <button class="back-button" type="button" data-action="look-center">CENTRO <kbd>S</kbd></button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monitor de cámaras -->
+        <div id="cameraOverlay" class="camera-overlay is-hidden" aria-hidden="true">
+          <div class="camera-shell">
+            <div class="camera-display">
+              <div id="cameraFeed" class="camera-feed" data-cam="stage">
+                <div class="cam-room">
+                  <div class="cam-props" aria-hidden="true"></div>
+                </div>
+                <div id="cameraCharacters" class="camera-characters"></div>
+                <div class="cam-static" aria-hidden="true"></div>
+                <div class="cam-scanlines" aria-hidden="true"></div>
+                <div class="cam-osd cam-osd-top">
+                  <span class="cam-rec"><i></i> REC</span>
+                  <span>KODIGO SECURITY</span>
+                </div>
+                <div class="cam-osd cam-osd-bottom">
+                  <span id="cameraCode">CAM 01</span>
+                  <span id="cameraTime">01:23:45</span>
+                </div>
+                <div class="cam-title-block">
+                  <span id="cameraLocation">ESCENARIO</span>
+                  <small id="cameraSignal">SEÑAL ESTABLE</small>
+                </div>
+
+                <div id="fusePanel" class="fuse-panel is-stable" role="group" aria-label="Panel de fusibles de la sala">
+                  <div class="fuse-panel-head">
+                    <span class="fuse-heading">FUSIBLES // <b id="fuseRoom">ESCENARIO</b></span>
+                    <span id="fuseStatus" class="fuse-status">ESTABLE</span>
+                  </div>
+                  <div class="fuse-panel-body">
+                    <div class="fuse-socket">
+                      <span id="fuseSocketLabel">POLARIDAD INSTALADA</span>
+                      <b id="fuseRequired">+</b>
+                    </div>
+                    <div class="fuse-work">
+                      <p id="fuseHint" class="fuse-hint">Circuito estable. No requiere reemplazo.</p>
+                      <div id="fuseOptions" class="fuse-options"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="camera-caption">
+                <div>
+                  <span class="eyebrow">TRANSMISIÓN EN VIVO</span>
+                  <b id="cameraCaption">El escenario. El lugar donde todo comienza.</b>
+                </div>
+                <button class="btn btn-close-cams" type="button" data-action="toggle-cameras">BAJAR CÁMARAS [C]</button>
+              </div>
+            </div>
+
+            <aside class="camera-sidebar">
+              <div class="cam-sidebar-head">
+                <span>RED DE VIGILANCIA</span>
+                <b>CAM 06</b>
+              </div>
+              <nav id="cameraButtons" class="camera-buttons" aria-label="Seleccionar cámara"></nav>
+              <div class="cam-legend">
+                <p>Las cámaras muestran únicamente el recorrido.</p>
+                <p class="warning">Si un animatrónico desaparece de la señal, su puerta puede estar en peligro.</p>
+              </div>
+              <div class="cam-power">
+                <span>CONSUMO EXTRA</span>
+                <div class="cam-power-dots"><i></i><i></i><i></i><i></i></div>
+              </div>
+              <p class="cam-key-hint">Usa <kbd>1</kbd>–<kbd>6</kbd> para cambiar de cámara.</p>
+            </aside>
+          </div>
+        </div>
+
+        <!-- Apagón -->
+        <div id="blackoutOverlay" class="overlay blackout-overlay is-hidden" aria-hidden="true">
+          <div class="blackout-content">
+            <p class="eyebrow">FALLO CRÍTICO DEL SISTEMA</p>
+            <h2>SIN ENERGÍA</h2>
+            <p>La vigilancia se apaga. Algo respira en la habitación.</p>
+            <div class="blackout-dots"><i></i><i></i><i></i></div>
+          </div>
+        </div>
+
+        <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      </main>
+
+      <footer class="controls-bar">
+        <div class="control-group look-controls">
+          <button class="ctl-btn" type="button" data-action="look-left"><span class="ctl-icon">◀</span><b>Izquierda</b><kbd>A</kbd></button>
+          <button class="ctl-btn" type="button" data-action="look-center"><span class="ctl-icon">●</span><b>Centro</b><kbd>S</kbd></button>
+          <button class="ctl-btn" type="button" data-action="look-right"><span class="ctl-icon">▶</span><b>Derecha</b><kbd>D</kbd></button>
+        </div>
+        <div class="control-divider" aria-hidden="true"></div>
+        <div class="control-group action-controls">
+          <button id="footerLight" class="ctl-btn ctl-action" type="button" data-action="light"><span class="ctl-icon">☼</span><b>Luz</b><kbd>L</kbd></button>
+          <button id="footerDoor" class="ctl-btn ctl-action" type="button" data-action="door"><span class="ctl-icon">▣</span><b>Puerta</b><kbd>ESPACIO</kbd></button>
+          <button class="ctl-btn ctl-action" type="button" data-action="toggle-cameras"><span class="ctl-icon">▤</span><b>Cámaras</b><kbd>C</kbd></button>
+        </div>
+        <p id="statusHint" class="status-hint">Mira una puerta para usar la luz y el cierre.</p>
+      </footer>
+
+      <!-- Aturdimiento -->
+      <div id="stunOverlay" class="overlay stun-overlay is-hidden" aria-hidden="true">
+        <div class="stun-static"></div>
+        <div class="stun-content">
+          <span class="eyebrow">INTERFERENCIA NEURONAL</span>
+          <h2>ATURDIDO</h2>
+          <p>DomDom te alcanzó. La habitación gira y el sistema pierde carga.</p>
+          <div id="stunPenalty" class="stun-penalty">−8% ENERGÍA</div>
+          <div class="stun-timer"><i id="stunTimerBar"></i></div>
+          <small>Recuperando el conocimiento...</small>
+        </div>
+      </div>
+
+      <!-- Puzzle de DomDom -->
+      <div id="puzzleOverlay" class="overlay puzzle-overlay is-hidden" aria-hidden="true">
+        <div class="puzzle-backdrop" aria-hidden="true">
+          <div id="puzzleDom" class="puzzle-dom"></div>
+          <div class="puzzle-red-vignette"></div>
+        </div>
+        <div class="puzzle-card">
+          <div class="puzzle-head">
+            <span class="eyebrow">INTERFERENCIA // DOMDOM</span>
+            <span class="visit-counter">VISITA <b id="puzzleVisit">1</b>/3</span>
+          </div>
+          <h2>NO MIRES ATRÁS</h2>
+          <p class="puzzle-copy">DomDom grabó un sello en tu mente. Repite la secuencia antes de que se apague la luz.</p>
+          <div id="puzzleVisitDots" class="visit-dots" aria-hidden="true"></div>
+          <div class="sequence-zone">
+            <span id="puzzleStatus" class="puzzle-status">MEMORIZA LA SECUENCIA</span>
+            <div id="puzzlePreview" class="puzzle-preview" aria-label="Secuencia a memorizar"></div>
+            <div class="puzzle-timer"><i id="puzzleTimerBar"></i></div>
+          </div>
+          <div id="puzzleInputProgress" class="puzzle-input-progress" aria-label="Progreso de la secuencia"></div>
+          <div id="puzzleGrid" class="puzzle-grid"></div>
+          <p id="puzzleWarning" class="puzzle-warning">La primera visita solo te aturdirá. La tercera no perdona.</p>
+        </div>
+      </div>
+
+      <!-- Jump scare -->
+      <div id="scareOverlay" class="overlay scare-overlay is-hidden" data-killer="bombom" aria-hidden="true">
+        <div class="scare-flash"></div>
+        <div class="scare-red"></div>
+        <div id="scareBot" class="scare-bot"></div>
+        <div id="scareName" class="scare-name">BOMBOM</div>
+        <div class="scare-glitch"></div>
+      </div>
+
+      <!-- Pantalla de muerte -->
+      <div id="deathOverlay" class="overlay death-overlay is-hidden" aria-hidden="true">
+        <div class="death-panel">
+          <div class="death-stamp">TURNO TERMINADO</div>
+          <div class="death-layout">
+            <div class="death-portrait-wrap">
+              <div id="deathPortrait" class="death-portrait"></div>
+              <span id="deathCode" class="death-code">ERROR // 01</span>
+            </div>
+            <div class="death-copy">
+              <p class="eyebrow"><span id="deathNight">NOCHE 1</span> — <span id="deathHour">1:00 AM</span></p>
+              <h2 id="deathTitle">BOMBOM TE ENCONTRÓ</h2>
+              <p id="deathDescription" class="death-description"></p>
+              <div class="death-stats">
+                <div><span>ENERGÍA RESTANTE</span><b id="deathPower">42%</b></div>
+                <div><span>HORA DEL FALLO</span><b id="deathTime">1:00 AM</b></div>
+              </div>
+              <div class="death-actions">
+                <button id="retryButton" class="btn btn-primary" type="button">Reintentar turno</button>
+                <button id="menuFromDeath" class="btn btn-ghost" type="button">Menú principal</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Victoria -->
+      <div id="victoryOverlay" class="overlay victory-overlay is-hidden" aria-hidden="true">
+        <div class="victory-light" aria-hidden="true"></div>
+        <div class="victory-content">
+          <p id="victoryEyebrow" class="eyebrow">06:00 AM // EL SOL SALE</p>
+          <div class="victory-clock">6:00</div>
+          <h2>AMANECIÓ</h2>
+          <p id="victoryDescription">Sobreviviste al turno. Por esta vez, las puertas vuelven a estar quietas.</p>
+          <div class="victory-stats">
+            <div><span>ENERGÍA FINAL</span><b id="victoryPower">-</b></div>
+            <div><span>VISITAS DE DOMDOM</span><b id="victoryDomdom">-</b></div>
+            <div><span>PUERTAS CERRADAS</span><b id="victoryDoors">-</b></div>
+          </div>
+          <div class="victory-actions">
+            <button id="playAgainButton" class="btn btn-primary" type="button">Jugar otra noche</button>
+            <button id="menuFromVictory" class="btn btn-ghost" type="button">Menú principal</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contrato inicial de la noche 1 -->
+      <div id="contractModal" class="overlay contract-overlay is-hidden" role="dialog" aria-modal="true" aria-labelledby="contractTitle" aria-hidden="true">
+        <article class="contract-card">
+          <div class="contract-header">
+            <span class="eyebrow">KODIGO NIGHT SECURITY // RR. HH.</span>
+            <span class="contract-code">CONTRATO N.º 001</span>
+          </div>
+          <h2 id="contractTitle">CONTRATO DE VIGILANCIA</h2>
+          <p class="contract-intro">
+            Por la presente, el guardia acepta cubrir el turno nocturno de las instalaciones.
+            Hoy comienza su primer turno.
+          </p>
+          <div class="contract-terms">
+            <p><b>Duración:</b> tres noches, desde las 12:00 AM hasta las 6:00 AM.</p>
+            <p><b>Funciones:</b> vigilar las cámaras, reemplazar fusibles, accionar puertas y sobrevivir.</p>
+            <p><b>Advertencia:</b> los animatrónicos no deben abandonar sus salas. No abandone el puesto.</p>
+          </div>
+          <div class="contract-sign">
+            <div>
+              <span>FIRMA DEL GUARDIA</span>
+              <b>___________________________</b>
+            </div>
+            <div class="contract-stamp">CONTRATADO<small>HOY EMPIEZA</small></div>
+            <div>
+              <span>FECHA DE INICIO</span>
+              <b>NOCHE 01 // 12:00 AM</b>
+            </div>
+          </div>
+          <div class="contract-actions">
+            <button id="contractAccept" class="btn btn-primary" type="button">Firmar y comenzar</button>
+            <small>Al firmar, acepta no abandonar el puesto hasta el amanecer.</small>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= AYUDA ================= -->
+  <div id="helpModal" class="modal-overlay is-hidden" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="help-card">
+      <button id="closeHelpButton" class="modal-close" type="button" aria-label="Cerrar ayuda">×</button>
+      <p class="eyebrow">MANUAL DEL GUARDIA</p>
+      <h2 id="helpTitle">Cómo sobrevivir</h2>
+
+      <div class="help-grid">
+        <article class="help-char help-bombom">
+          <span class="help-color"></span>
+          <h3>BomBom</h3>
+          <p>Morado y azul. Llega por la <b>puerta derecha</b>. Su señal es un <b>rugido grave y metálico</b>.</p>
+        </article>
+        <article class="help-char help-pumpum">
+          <span class="help-color"></span>
+          <h3>PumPum</h3>
+          <p>Blanco y rosado. Llega por la <b>puerta izquierda</b>. Su señal es un <b>rugido agudo y chirriante</b>.</p>
+        </article>
+        <article class="help-char help-domdom">
+          <span class="help-color"></span>
+          <h3>DomDom</h3>
+          <p>Negro y ojos rojos. Entra en la oficina <b>tres veces</b>. Resuelve su secuencia o te aturdirá. <b>Fallar la tercera visita es mortal.</b></p>
+        </article>
+      </div>
+
+      <div class="help-split">
+        <div>
+          <h3 class="help-subtitle">Controles</h3>
+          <ul class="key-list">
+            <li><span><kbd>A</kbd> / <kbd>D</kbd></span> Mirar puerta izquierda / derecha</li>
+            <li><span><kbd>S</kbd></span> Volver al centro</li>
+            <li><span><kbd>L</kbd></span> Encender o apagar la luz</li>
+            <li><span><kbd>ESPACIO</kbd></span> Cerrar o abrir la puerta actual</li>
+            <li><span><kbd>C</kbd></span> Subir o bajar las cámaras</li>
+            <li><span><kbd>1</kbd>–<kbd>6</kbd></span> Cambiar de cámara</li>
+            <li><span><kbd>1</kbd>–<kbd>4</kbd></span> Resolver el puzzle de DomDom</li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="help-subtitle">Reglas de energía</h3>
+          <p class="help-small">Luces, cámaras y puertas cerradas consumen energía. El apagón también es mortal.</p>
+          <p class="help-small">Los fusibles de cada cámara se sobrecalientan. Sustitúyelos por uno de la misma polaridad para recuperar energía. El turno tiene tres noches y cada una es más difícil.</p>
+          <div class="audio-demo">
+            <p>Prueba las pistas de puerta:</p>
+            <button type="button" class="btn btn-mini" data-demo-sound="bombom">Sonido BomBom</button>
+            <button type="button" class="btn btn-mini" data-demo-sound="pumpum">Sonido PumPum</button>
+          </div>
+          <p class="help-small warning-text">La luz es una trampa: si iluminas una puerta ocupada, el animatrónico atacará.</p>
+        </div>
+      </div>
+
+      <div class="help-actions">
+        <button id="helpStartButton" class="btn btn-primary" type="button">Comenzar turno</button>
+        <button id="helpBackButton" class="btn btn-ghost" type="button">Volver</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
